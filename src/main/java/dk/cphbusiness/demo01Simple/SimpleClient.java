@@ -22,15 +22,12 @@ public class SimpleClient {
     }
 
     public String sendMessage(String msg) {
-//        try {
             out.println(msg);
+            out.flush();
             StringBuilder sb = new StringBuilder();
             in.lines().forEach(sb::append);
             String resp = sb.toString();
             return resp;
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
     }
 
     public void stopConnection() {

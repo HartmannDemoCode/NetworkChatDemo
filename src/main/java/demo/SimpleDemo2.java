@@ -26,9 +26,12 @@ public class SimpleDemo2 {
             in = new BufferedReader(new InputStreamReader(clientHandler.getInputStream()));
             System.out.println("Server ready to recieve requests");
             String inputLine;
+            StringBuilder sb = new StringBuilder();
             while((inputLine = in.readLine()) != null){
-                System.out.println("Message from Client: "+inputLine);
+                System.out.println(inputLine);
                 out.println(inputLine);
+                sb.append(inputLine);
+
             }
 //            String request = in.readLine();
 //            System.out.println("Message from client: "+request);

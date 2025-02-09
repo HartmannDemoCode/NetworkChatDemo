@@ -59,7 +59,7 @@ public class RequestDataServer extends SimpleServer {
 //                throw new IllegalArgumentException("The request is lacking the request line and is therefore not a valid HTTP request");
 //            }
 
-            // Check if the request has more lines
+            // Check if the request has no more lines
             if (!in.ready()) {
                 requestDTO.setRequestLine(requestLine);
                 return requestDTO;

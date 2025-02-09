@@ -14,47 +14,70 @@ import java.net.Socket;
  */
 public class SimpleDemo {
     private ServerSocket server;
-    private Socket clientHandler;
-    private PrintWriter out;
-    private BufferedReader in;
 
 
     public void start(){
         try {
             server = new ServerSocket(8080);
-            clientHandler = server.accept();
-            out = new PrintWriter(clientHandler.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientHandler.getInputStream()));
-            System.out.println("Server started");
-            out.println("Connection established");
-            String inputLine;
-            while((inputLine = in.readLine()) != null){
-                System.out.println("Message from client: "+inputLine);
-                if("Stop".equals(inputLine)){
-                    break;
-                }
+            while(true) {
+                Socket socket = server.accept();
+                Runnable clientHandler = new ClientHandler(socket);
+                new Thread(clientHandler).start();
             }
+//
         } catch(IOException ex){
-            //TODO: remember production ready
-           ex.printStackTrace();
-        } finally {
-            try {
-                stop();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
+            ex.printStackTrace();
         }
+//        catch(IOException ex){
+//            //TODO: remember production ready
+//           ex.printStackTrace();
+//        } finally {
+//            try {
+//                stop();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//
+//        }
     }
 
-    private void stop() throws IOException {
-        in.close();
-        out.close();
-        clientHandler.close();
-        server.close();
-    }
+//    private void stop() throws IOException {
+//        in.close();
+//        out.close();
+//        clientHandler.close();
+//        server.close();
+//    }
 
     public static void main(String[] args) {
         new SimpleDemo().start();
+    }
+
+    private static class ClientHandler implements Runnable{
+
+        private Socket clientSocket;
+
+        public ClientHandler(Socket socket){
+            this.clientSocket = socket;
+        }
+
+        @Override
+        public void run(){
+            try {
+                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                System.out.println("Server started");
+                out.println("Connection established");
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    System.out.println("Message from client: " + inputLine);
+                    if ("Stop".equals(inputLine)) {
+                        break;
+                    }
+                }
+            } catch(IOException ex){
+                ex.printStackTrace();
+            }
+
+        }
     }
 }

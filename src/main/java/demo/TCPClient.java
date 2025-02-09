@@ -30,7 +30,7 @@ public class TCPClient {
 
     public static void main(String[] args) {
         try {
-            new TCPClient().startConnection("localhost", 8080);
+            new TCPClient().startConnection("localhost", 12345);
             out.println("Besked fra klienten som vi har kodet");
             String firstResonse = in.readLine();
             System.out.println(firstResonse);
