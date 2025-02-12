@@ -83,12 +83,14 @@ public class Chat1Demo implements IChatServer, IObservable {
     @Override
     public void stopServer() {
         try {
+            broadcast("#MESSAGE Server is shutting down");
+            clientHandlers.forEach(ClientHandler::cleanup);
+            clientHandlers.clear();
             server.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
 
     private static class ClientHandler implements Runnable, IObserver {
         private IObservable chatServer;
@@ -115,16 +117,27 @@ public class Chat1Demo implements IChatServer, IObservable {
                 out.println("Hello new client. Please join by entering your name like this: \"JOIN: <your name>\"");
                 String msg;
                 while ((msg = in.readLine()) != null) { // Read each line comming from the client
-                    if (msg.trim().equals("Over and Out")) {
+                    if (msg.trim().equals("#STOP")) {
+                        ((IChatServer) chatServer).stopServer();
                         break; // Exit loop if termination message is received
                     }
-                    if (msg.trim().startsWith("JOIN")) {
+                    if (msg.trim().startsWith("#JOIN")) {
                         this.name = msg.split(" ")[1];
                         out.println("Hello " + this.name + " pleased to meet you. You can always end this conversation by entering: \"Over and Out\"");
                         chatServer.broadcast("#MESSAGE " + this.name + " has joined the chat");
                     }
                     if (msg.trim().startsWith("#MESSAGE ")) {
                         chatServer.broadcast(msg.substring(9)); // Remove the #Message from the message
+                    }
+                    if (msg.trim().startsWith("#PRIVATE ")) {
+                        String[] parts = msg.split(" ");
+                        String receiver = parts[1];
+                        String message = msg.substring(9 + receiver.length()+1); // Remove the #PRIVATE <receiver> from the message
+                        for (ClientHandler clientHandler : clientHandlers) {
+                            if (clientHandler.name.equals(receiver)) {
+                                clientHandler.notify("Private message from " + this.name + ": " + message);
+                            }
+                        }
                     }
                     out.println("We received this message: '" + msg + "' from " + this.name);
                 }
@@ -145,7 +158,7 @@ public class Chat1Demo implements IChatServer, IObservable {
 
         private void cleanup() {
             try {
-                clientHandlers.remove(this); // Remove from the list
+                chatServer.removeObserver(this);
                 if (out != null) out.close();
                 if (in != null) in.close();
                 if (clientSocket != null) clientSocket.close();
